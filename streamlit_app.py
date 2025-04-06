@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("🎈 My new app")
+st.title("🎈 Kali")
 st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
+    "Nghiên cứu thêm về Hugging Face, Model Context Protocol (MCP), Agent nha con, sử dụng Gradio hoặc Streamlit để tạo UI."
 )
