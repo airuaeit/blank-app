@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>🎙️ Voice Chat with Local AI</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f7f7f8;
+        color: #343541;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .header {
+        padding: 15px 0;
+        text-align: center;
+        border-bottom: 1px solid #e5e5e5;
+        background-color: white;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .header h1 {
+        font-size: 20px;
+        font-weight: 500;
+      }
+
+      .app-subtitle {
+        font-size: 14px;
+        color: #666;
+        margin-top: 4px;
+      }
+
+      .chat-container {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      #chatBox {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
+        scroll-behavior: smooth;
+      }
+
+      .message-wrapper {
+        display: flex;
+        padding: 20px;
+      }
+
+      .user-wrapper {
+        background-color: white;
+      }
+
+      .ai-wrapper {
+        background-color: #f7f7f8;
+      }
+
+      .message-content {
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+        line-height: 1.6;
+      }
+
+      .message {
+        padding: 0;
+        border-radius: 0;
+        max-width: 100%;
+        line-height: 1.6;
+      }
+
+      .user {
+        background: none;
+        align-self: initial;
+        text-align: left;
+        margin-left: initial;
+      }
+
+      .ai {
+        background: none;
+        align-self: initial;
+        text-align: left;
+        margin-right: initial;
+      }
+
+      .thinking-wrapper {
+        background-color: #f7f7f8;
+        padding: 20px;
+        display: flex;
+      }
+
+      .thinking {
+        background: none;
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .thinking-dots {
+        margin-left: 8px;
+        display: flex;
+        align-items: center;
+      }
+
+      .dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: #777;
+        margin-right: 3px;
+        animation: dot-pulse 1.5s infinite ease-in-out;
+      }
+
+      .dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes dot-pulse {
+        0%,
+        100% {
+          transform: scale(0.7);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+      }
+
+      .input-area {
+        border-top: 1px solid #e5e5e5;
+        padding: 20px;
+        background-color: white;
+        position: relative;
+      }
+
+      .input-container {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      #userInput {
+        width: 100%;
+        padding: 12px 50px 12px 15px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        outline: none;
+        font-size: 16px;
+        resize: none;
+        height: 52px;
+        line-height: 1.5;
+        background-color: white;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        transition: border 0.2s, box-shadow 0.2s;
+      }
+
+      #userInput:focus {
+        border-color: #10a37f;
+        box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
+      }
+
+      .input-buttons {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+      }
+
+      .mic-button,
+      .send-button {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 5px;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        color: #343541;
+      }
+
+      .mic-button:hover,
+      .send-button:hover {
+        opacity: 1;
+      }
+
+      .mic-button.active {
+        color: #10a37f;
+        opacity: 1;
+      }
+
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+        font-weight: bold;
+      }
+
+      .avatar-user {
+        background-color: #10a37f;
+        color: white;
+      }
+
+      .avatar-ai {
+        background-color: #19c37d;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🎙️ English Practice Assistant</h1>
+      <div class="app-subtitle">Practice your English conversation skills</div>
+    </div>
+
+    <div class="chat-container">
+      <div id="chatBox"></div>
+
+      <div class="input-area">
+        <div class="input-container">
+          <textarea
+            id="userInput"
+            placeholder="Message AI..."
+            rows="1"
+          ></textarea>
+          <div class="input-buttons">
+            <button
+              id="micButton"
+              class="mic-button"
+              title="Start/Stop Voice Input"
+            >
+              🎤
+            </button>
+            <button id="sendButton" class="send-button" title="Send Message">
+              ➤
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const micButton = document.getElementById("micButton");
+      const sendButton = document.getElementById("sendButton");
+      const userInput = document.getElementById("userInput");
+      const chatBox = document.getElementById("chatBox");
+
+      const recognition = new (window.SpeechRecognition ||
+        window.webkitSpeechRecognition)();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.continuous = false;
+
+      let speaking = false;
+      // Store conversation history
+      let conversationHistory = [
+        {
+          role: "system",
+          content:
+            "You are an English practice assistant for beginners. Follow these rules STRICTLY: 1) Use ONLY basic vocabulary appropriate for elementary English learners 2) Use ONLY simple grammar structures 3) NEVER write more than 2 short sentences total 4) NEVER use complex words 5) If the user makes grammar mistakes, provide a simple correction by saying 'Tip:' and the correct way 6) Keep your ENTIRE response under 25 words MAXIMUM 7) Remember previous conversation context to provide relevant responses",
+        },
+      ];
+
+      // Auto-resize textarea as user types
+      userInput.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height =
+          this.scrollHeight < 150 ? this.scrollHeight + "px" : "150px";
+      });
+
+      // Submit message when Enter is pressed (Shift+Enter for new line)
+      userInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      recognition.onstart = () => {
+        speaking = true;
+        micButton.classList.add("active");
+        console.log("Listening...");
+      };
+
+      recognition.onend = () => {
+        speaking = false;
+        micButton.classList.remove("active");
+        console.log("Stopped listening.");
+      };
+
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript;
+        userInput.value = text;
+        sendMessage();
+      };
+
+      micButton.onclick = () => {
+        if (speaking) {
+          recognition.stop();
+          window.speechSynthesis.cancel();
+        } else {
+          window.speechSynthesis.cancel();
+          recognition.start();
+        }
+      };
+
+      sendButton.onclick = sendMessage;
+
+      async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        // Clear input and reset height
+        userInput.value = "";
+        userInput.style.height = "auto";
+
+        // Display user message
+        appendUserMessage(text);
+
+        // Show thinking indicator
+        const thinkingId = showThinking();
+
+        try {
+          // Add user message to conversation history
+          conversationHistory.push({
+            role: "user",
+            content: `You are my English practice partner. Answer in just 1-2 very simple sentences: ${text}. Then ask new question to continue the conversation. Try to friendly engage the user.`,
+          });
+
+          // Limit history length to prevent context window issues (keep last 10 messages)
+          if (conversationHistory.length > 11) {
+            // system prompt + 10 exchanges
+            conversationHistory = [
+              conversationHistory[0], // Keep system prompt
+              ...conversationHistory.slice(conversationHistory.length - 10),
+            ];
+          }
+
+          const res = await fetch("https://f69f-86-98-4-241.ngrok-free.app/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "local-model",
+              messages: conversationHistory,
+              temperature: 0.3,
+              max_tokens: 40,
+            }),
+          });
+
+          // Remove thinking indicator
+          removeThinking(thinkingId);
+
+          const data = await res.json();
+          let aiText = data.choices[0].message.content;
+
+          // Super aggressive response truncation
+          // First split by period, question mark or exclamation
+          const sentenceEndings = /[.!?]/;
+          const sentences = aiText
+            .split(sentenceEndings)
+            .filter((s) => s.trim().length > 0);
+
+          // Keep maximum 2 sentences
+          if (sentences.length > 2) {
+            // Reconstruct first two sentences with proper punctuation
+            aiText =
+              sentences[0] +
+              "." +
+              (sentences[1] ? " " + sentences[1] + "." : "");
+          }
+
+          // Hard word limit - extremely restrictive
+          const words = aiText.trim().split(/\s+/);
+          if (words.length > 25) {
+            aiText = words.slice(0, 25).join(" ");
+
+            // Ensure proper ending
+            if (
+              !aiText.endsWith(".") &&
+              !aiText.endsWith("!") &&
+              !aiText.endsWith("?")
+            ) {
+              aiText += ".";
+            }
+          }
+
+          // Add AI response to conversation history
+          conversationHistory.push({ role: "assistant", content: aiText });
+
+          appendAIMessage(aiText);
+
+          // Speak the response slowly and clearly for language practice
+          const utterance = new SpeechSynthesisUtterance(aiText);
+          utterance.lang = "en-US";
+          utterance.rate = 0.9; // Slightly slower speech for better comprehension
+          utterance.pitch = 1.0;
+
+          // Listen for when speech ends
+          utterance.onend = function () {
+            // Wait 1 second then play beep and start listening
+            setTimeout(() => {
+              playBeepSound();
+              setTimeout(() => {
+                recognition.start();
+              }, 200);
+            }, 1000);
+          };
+
+          window.speechSynthesis.speak(utterance);
+        } catch (error) {
+          removeThinking(thinkingId);
+          console.error("Error communicating with AI:", error);
+          appendAIMessage(
+            "I'm sorry, I encountered an error while processing your request."
+          );
+        }
+      }
+
+      function appendUserMessage(text) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "message-wrapper user-wrapper";
+
+        const content = document.createElement("div");
+        content.className = "message-content";
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar avatar-user";
+        avatar.textContent = "U";
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message user";
+        messageDiv.innerText = text;
+
+        content.appendChild(document.createElement("div")).appendChild(avatar);
+        content.appendChild(messageDiv);
+        wrapper.appendChild(content);
+        chatBox.appendChild(wrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function appendAIMessage(text) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "message-wrapper ai-wrapper";
+
+        const content = document.createElement("div");
+        content.className = "message-content";
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar avatar-ai";
+        avatar.textContent = "AI";
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message ai";
+        messageDiv.innerText = text;
+
+        content.appendChild(document.createElement("div")).appendChild(avatar);
+        content.appendChild(messageDiv);
+        wrapper.appendChild(content);
+        chatBox.appendChild(wrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function showThinking() {
+        const wrapper = document.createElement("div");
+        wrapper.className = "thinking-wrapper";
+        const id = "thinking-" + Date.now();
+        wrapper.id = id;
+
+        const content = document.createElement("div");
+        content.className = "thinking";
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar avatar-ai";
+        avatar.textContent = "AI";
+
+        const dots = document.createElement("div");
+        dots.className = "thinking-dots";
+
+        for (let i = 0; i < 3; i++) {
+          const dot = document.createElement("div");
+          dot.className = "dot";
+          dots.appendChild(dot);
+        }
+
+        content.appendChild(document.createElement("div")).appendChild(avatar);
+        content.appendChild(dots);
+        wrapper.appendChild(content);
+        chatBox.appendChild(wrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        return id;
+      }
+
+      function removeThinking(id) {
+        const element = document.getElementById(id);
+        if (element) {
+          element.remove();
+        }
+      }
+
+      // Function to play a beep sound
+      function playBeepSound() {
+        // Create audio context
+        const audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
+
+        // Create oscillator (beep generator)
+        const oscillator = audioContext.createOscillator();
+        oscillator.type = "sine"; // sine wave — a pure tone
+        oscillator.frequency.value = 800; // frequency in hertz
+
+        // Create gain node to control volume
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.1; // set volume to 10%
+
+        // Connect oscillator to gain node and gain node to audio output
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Start and stop the beep (short duration)
+        oscillator.start();
+        setTimeout(() => {
+          oscillator.stop();
+        }, 150); // 150ms duration beep
+      }
+    </script>
+  </body>
+</html>

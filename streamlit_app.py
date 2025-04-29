@@ -1,6 +1,10 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
-st.title("🎈 Kali")
-st.write(
-    "Nghiên cứu thêm về Hugging Face, Model Context Protocol (MCP), Agent nha con, sử dụng Gradio hoặc Streamlit để tạo UI."
-)
+# Load the HTML file
+with open("static/index.html", "r", encoding='utf-8') as f:
+    html_content = f.read()
+
+# Render the HTML inside the app
+components.html(html_content, height=600, scrolling=True)
+
