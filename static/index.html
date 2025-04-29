@@ -360,16 +360,19 @@
             ];
           }
 
-          const res = await fetch("https://f69f-86-98-4-241.ngrok-free.app/v1/chat/completions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              model: "local-model",
-              messages: conversationHistory,
-              temperature: 0.3,
-              max_tokens: 40,
-            }),
-          });
+          const res = await fetch(
+            "https://9b77-86-98-4-241.ngrok-free.app/v1/chat/completions",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "local-model",
+                messages: conversationHistory,
+                temperature: 0.3,
+                max_tokens: 40,
+              }),
+            }
+          );
 
           // Remove thinking indicator
           removeThinking(thinkingId);
