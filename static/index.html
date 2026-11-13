@@ -361,12 +361,12 @@
           }
 
           const res = await fetch(
-            "https://9b77-86-98-4-241.ngrok-free.app/v1/chat/completions",
+            "http://localhost:11434/v1/chat/completions",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                model: "local-model",
+                model: "llama3.2:1b",
                 messages: conversationHistory,
                 temperature: 0.3,
                 max_tokens: 40,
